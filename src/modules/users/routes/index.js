@@ -6,24 +6,6 @@ const { createRoleBasedProtection } = require('../../auth/middleware/keycloak-pr
 module.exports = (keycloak, userService) => {
     const router = express.Router();
 
-    // Initialize protection middleware with API-specific options
-    const auth = createRoleBasedProtection(keycloak, {
-        unauthorizedMessage: 'Authentication required to access user management API',
-        forbiddenMessage: 'Admin privileges required to manage users',
-        jsonResponse: true, // Force JSON responses for API routes
-        logUnauthorized: true,
-        customErrorHandler: (error, req, res, next) => {
-            // Pass custom errors to global error handler
-            if (error.message?.includes('Access denied') || error.status === 403) {
-                const { AuthorizationError } = require('../../../common/errors');
-                next(new AuthorizationError('Admin privileges required to manage users'));
-            } else {
-                const { AuthenticationError } = require('../../../common/errors');
-                next(new AuthenticationError('Authentication required to access user management API'));
-            }
-        }
-    });
-
     // Middleware to handle validation errors
     const validate = (req, res, next) => {
         const errors = validationResult(req);
@@ -32,13 +14,10 @@ module.exports = (keycloak, userService) => {
         }
         next();
     };
-    router.use((req, res, next) => {
-        console.log("Token content:", req.kauth?.grant?.access_token?.content);
-        next();
-    });
+
     // Get all users
     router.get('/',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         async (req, res, next) => {
             try {
                 const users = await userService.getUsers();
@@ -55,7 +34,7 @@ module.exports = (keycloak, userService) => {
 
     // Get user by ID
     router.get('/:userId',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         async (req, res, next) => {
             try {
                 const user = await userService.getUser(req.params.userId);
@@ -71,7 +50,7 @@ module.exports = (keycloak, userService) => {
 
     // Create new user
     router.post('/',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         [
             body('username')
                 .notEmpty()
@@ -116,7 +95,7 @@ module.exports = (keycloak, userService) => {
 
     // Update user
     router.put('/:userId',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         [
             body('email')
                 .optional()
@@ -155,7 +134,7 @@ module.exports = (keycloak, userService) => {
 
     // Delete user
     router.delete('/:userId',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         async (req, res, next) => {
             try {
                 await userService.deleteUser(req.params.userId);
@@ -171,7 +150,7 @@ module.exports = (keycloak, userService) => {
 
     // Reset user password
     router.put('/:userId/reset-password',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         [
             body('password')
                 .isLength({ min: 8 })
@@ -204,7 +183,7 @@ module.exports = (keycloak, userService) => {
 
     // Enable/Disable user
     router.patch('/:userId/status',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         [
             body('enabled')
                 .isBoolean()
@@ -228,7 +207,7 @@ module.exports = (keycloak, userService) => {
 
     // Get user roles
     router.get('/:userId/roles',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         async (req, res, next) => {
             try {
                 const roles = await userService.getUserRoles(req.params.userId);
@@ -244,7 +223,7 @@ module.exports = (keycloak, userService) => {
 
     // Assign roles to user
     router.post('/:userId/roles',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         [
             body('roles')
                 .isArray({ min: 1 })
@@ -269,7 +248,7 @@ module.exports = (keycloak, userService) => {
 
     // Remove roles from user
     router.delete('/:userId/roles',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         [
             body('roles')
                 .isArray({ min: 1 })
@@ -294,7 +273,7 @@ module.exports = (keycloak, userService) => {
 
     // Bulk operations
     router.post('/bulk/delete',
-        auth.requireRole('realm:admin'),
+        keycloak.protect('realm:admin'),
         [
             body('userIds')
                 .isArray({ min: 1 })

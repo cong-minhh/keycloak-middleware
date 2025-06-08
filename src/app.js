@@ -2,6 +2,8 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongodb-session')(session);
 const Keycloak = require('keycloak-connect');
+const { KeycloakAccessDeniedWrapper, setupAccessDeniedRoute } = require('./modules/auth/middleware/KeycloakAccessDeniedWrapper');
+
 const cors = require('cors');
 const path = require('path');
 const config = require('./config');
@@ -56,7 +58,9 @@ class App {
 
         // Keycloak setup
         this.keycloak = new Keycloak({ store: store });
-        this.app.use(this.keycloak.middleware());
+        const keycloakWrapper = new KeycloakAccessDeniedWrapper(this.keycloak);
+        this.app.use(keycloakWrapper.getKeycloakInstance().middleware());
+        setupAccessDeniedRoute(this.app);
     }
 
     setupServices() {
@@ -139,7 +143,7 @@ class App {
         const roleRoutes = require('./modules/roles/routes')(this.keycloak, this.roleService);
         const clientRoutes = require('./modules/clients/routes')(this.keycloak, this.clientService);
         const sensorRoutes = require('./modules/sensors/routes')(this.keycloak, this.sensorService);
-        const accessDeniedRoute = require('./modules/auth/routes/accessDenied')();
+        // const accessDeniedRoute = require('./modules/auth/routes/accessDenied')();
 
         // Register API routes with admin protection
         this.app.use('/api/admin/users', userRoutes);
@@ -150,19 +154,18 @@ class App {
         this.app.use('/api/sensors', sensorRoutes);
 
         // Access denied route
-        this.app.use('/accessDenied', accessDeniedRoute);
 
         // Authentication routes
         this.setupAuthRoutes();
 
         // Home route with web protection
-        this.app.get('/', this.webAuth.authenticate, (req, res) => {
+        this.app.get('/', this.keycloak.protect('realm:admin'), (req, res) => {
             res.sendFile('index.html', { root: this.publicDirectory });
         });
 
         // Protected admin dashboard
         // TODO: Create admin dashboard with web protection
-        this.app.get('/admin', this.keycloak.protect(), (req, res) => {
+        this.app.get('/admin', this.keycloak.protect('realm:admin'), (req, res) => {
             res.sendFile('index.html', { root: this.publicDirectory });
         });
 

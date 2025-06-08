@@ -1,433 +1,523 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keycloak Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Admin Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.1/font/bootstrap-icons.min.css"
+        rel="stylesheet">
+
     <style>
+        :root {
+            --bs-dark: #1a1a1a;
+            --bs-body-bg: #121212;
+            --bs-body-color: #ffffff;
+            --card-bg: #1e1e1e;
+            --border-color: #333;
+        }
+
+        body {
+            background-color: var(--bs-body-bg);
+            color: var(--bs-body-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: var(--bs-dark) !important;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-tabs {
+            border-bottom: 1px solid var(--border-color);
+        }
+
         .nav-tabs .nav-link {
-            color: #495057;
+            color: #adb5bd;
+            border: none;
+            border-bottom: 2px solid transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #ffffff;
+            border-bottom-color: #6c757d;
         }
 
         .nav-tabs .nav-link.active {
-            color: #0d6efd;
+            color: #ffffff;
+            background-color: transparent;
+            border-bottom-color: #0d6efd;
         }
 
-        .action-buttons {
-            white-space: nowrap;
+        .table-dark {
+            --bs-table-bg: var(--card-bg);
         }
 
-        .table-responsive {
-            margin-top: 20px;
+        .btn-outline-light:hover {
+            background-color: #ffffff;
+            color: #000000;
         }
 
-        .modal-header {
-            background-color: #f8f9fa;
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            color: #dc3545;
+        }
+
+        .error-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-buttons .btn {
+            margin-right: 0.25rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1.5rem;
         }
 
         .alert-container {
             position: fixed;
-            top: 20px;
+            top: 80px;
             right: 20px;
             z-index: 1050;
+            width: 400px;
         }
 
-        /* Loading States */
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading-spinner .spinner-border {
-            width: 3rem;
-            height: 3rem;
-        }
-
-        /* Access Denied */
-        .access-denied {
-            text-align: center;
-            padding: 40px 20px;
-            background-color: #f8d7da;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .access-denied i {
-            font-size: 48px;
-            color: #dc3545;
-            margin-bottom: 20px;
-        }
-
-        /* Error State */
-        .error-state {
-            text-align: center;
-            padding: 40px 20px;
-            background-color: #f8d7da;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .error-state i {
-            font-size: 48px;
-            color: #dc3545;
-            margin-bottom: 20px;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            background-color: #e9ecef;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: #6c757d;
-            margin-bottom: 20px;
-        }
-
-        /* Button Loading State */
-        .btn.loading {
-            position: relative;
-            pointer-events: none;
-            color: transparent !important;
-        }
-
-        .btn.loading::after {
-            content: '';
-            position: absolute;
-            width: 1em;
-            height: 1em;
-            top: 50%;
-            left: 50%;
-            margin: -0.5em;
-            border: 2px solid currentColor;
-            border-right-color: transparent;
-            border-radius: 50%;
-            animation: button-loading-spinner 0.75s linear infinite;
-        }
-
-        @keyframes button-loading-spinner {
-            from {
-                transform: rotate(0turn);
+        @media (max-width: 768px) {
+            .alert-container {
+                width: calc(100% - 40px);
+                left: 20px;
+                right: 20px;
             }
+        }
 
-            to {
-                transform: rotate(1turn);
-            }
+        .modal-content {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        pre {
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
 </head>
 
 <body>
-    <div class="container-fluid py-4">
-        <h1 class="mb-4">Keycloak Admin Dashboard</h1>
-
-        <!-- Alert Container -->
-        <div class="alert-container"></div>
-
-        <!-- Navigation Tabs -->
-        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users"
-                    type="button" role="tab">Users</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles" type="button"
-                    role="tab">Roles</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups" type="button"
-                    role="tab">Groups</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients" type="button"
-                    role="tab">Clients</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="realms-tab" data-bs-toggle="tab" data-bs-target="#realms" type="button"
-                    role="tab">Realms</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="sessions-tab" data-bs-toggle="tab" data-bs-target="#sessions" type="button"
-                    role="tab">Sessions</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button"
-                    role="tab">Security</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="server-info-tab" data-bs-toggle="tab" data-bs-target="#server-info"
-                    type="button" role="tab">Server Info</button>
-            </li>
-        </ul>
-
-        <!-- Tab Content -->
-        <div class="tab-content" id="adminTabsContent">
-            <!-- Users Tab -->
-            <div class="tab-pane fade show active" id="users" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Management</h2>
-                    <button class="btn btn-primary" onclick="showCreateUserModal()"><i class="bi bi-plus-lg"></i> Create
-                        User</button>
-                </div>
-                <div class="loading-spinner" id="users-loading">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-                <div class="error-state" id="users-error" style="display: none;">
-                    <i class="bi bi-exclamation-circle"></i>
-                    <h4>Error Loading Users</h4>
-                    <p class="error-message">Unable to load user data. Please try again later.</p>
-                    <button class="btn btn-primary" onclick="loadUsers()">Retry</button>
-                </div>
-                <div class="empty-state" id="users-empty" style="display: none;">
-                    <i class="bi bi-people"></i>
-                    <h4>No Users Found</h4>
-                    <p>There are no users in the system yet.</p>
-                    <button class="btn btn-primary" onclick="showCreateUserModal()">Create First User</button>
-                </div>
-                <div class="table-responsive" id="users-table">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userList"></tbody>
-                    </table>
-                </div>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-shield-lock"></i>
+                Admin Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-person-circle"></i> Admin</a>
+                    </li>
+                </ul>
             </div>
+        </div>
+    </nav>
 
-            <!-- Roles Tab -->
-            <div class="tab-pane fade" id="roles" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Role Management</h2>
-                    <button class="btn btn-primary" onclick="showCreateRoleModal()"><i class="bi bi-plus-lg"></i> Create
-                        Role</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="roleList"></tbody>
-                    </table>
-                </div>
-            </div>
+    <!-- Alert Container -->
+    <div class="alert-container" id="alertArea"></div>
 
-            <!-- Groups Tab -->
-            <div class="tab-pane fade" id="groups" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Group Management</h2>
-                    <button class="btn btn-primary" onclick="showCreateGroupModal()"><i class="bi bi-plus-lg"></i>
-                        Create Group</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Path</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="groupsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Clients Tab -->
-            <div class="tab-pane fade" id="clients" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Client Management</h2>
-                    <button class="btn btn-primary" onclick="showCreateClientModal()"><i class="bi bi-plus-lg"></i>
-                        Create Client</button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Client ID</th>
-                                <th>Name</th>
-                                <th>Description</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="clientList"></tbody>
-                    </table>
-                </div>
-
-                <!-- Client Roles Section -->
-                <div class="mt-4" id="clientRolesSection" style="display: none;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3>Client Roles</h3>
-                        <button class="btn btn-primary" onclick="showCreateClientRoleModal()"><i
-                                class="bi bi-plus-lg"></i> Create Role</button>
-                    </div>
-                    <div class="table-responsive mt-3">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Description</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="clientRolesTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Create Client Role Modal -->
-            <div class="modal fade" id="createClientRoleModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Create New Client Role</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="createClientRoleForm">
-                                <div class="mb-3">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" class="form-control" name="name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Description</label>
-                                    <textarea class="form-control" name="description"></textarea>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" onclick="createClientRole()">Create</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
+                        <!-- Tabs Navigation -->
+                        <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="users-tab" data-bs-toggle="tab"
+                                    data-bs-target="#users" type="button" role="tab">
+                                    <i class="bi bi-people"></i> Users
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles"
+                                    type="button" role="tab">
+                                    <i class="bi bi-shield"></i> Roles
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="groups-tab" data-bs-toggle="tab" data-bs-target="#groups"
+                                    type="button" role="tab">
+                                    <i class="bi bi-collection"></i> Groups
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="clients-tab" data-bs-toggle="tab" data-bs-target="#clients"
+                                    type="button" role="tab">
+                                    <i class="bi bi-laptop"></i> Clients
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="sessions-tab" data-bs-toggle="tab"
+                                    data-bs-target="#sessions" type="button" role="tab">
+                                    <i class="bi bi-clock-history"></i> Sessions
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="security-tab" data-bs-toggle="tab"
+                                    data-bs-target="#security" type="button" role="tab">
+                                    <i class="bi bi-shield-exclamation"></i> Security
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab Content -->
+                        <div class="tab-content mt-4" id="adminTabsContent">
+                            <!-- Users Tab -->
+                            <div class="tab-pane fade show active" id="users" role="tabpanel">
+                                <div class="section-header">
+                                    <h4>User Management</h4>
+                                    <button class="btn btn-primary" onclick="showCreateUserModal()">
+                                        <i class="bi bi-plus-circle"></i> Add User
+                                    </button>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="users-loading" class="loading-spinner" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="users-error" class="error-state" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <h5>Error Loading Users</h5>
+                                    <p class="error-message"></p>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="users-empty" class="empty-state" style="display: none;">
+                                    <i class="bi bi-people"></i>
+                                    <h5>No Users Found</h5>
+                                    <p>No users have been created yet.</p>
+                                </div>
+
+                                <!-- Content -->
+                                <div id="usersContent" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>Email</th>
+                                                    <th>Name</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="userList"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Roles Tab -->
+                            <div class="tab-pane fade" id="roles" role="tabpanel">
+                                <div class="section-header">
+                                    <h4>Role Management</h4>
+                                    <button class="btn btn-primary" onclick="showCreateRoleModal()">
+                                        <i class="bi bi-plus-circle"></i> Add Role
+                                    </button>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="roles-loading" class="loading-spinner" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="roles-error" class="error-state" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <h5>Error Loading Roles</h5>
+                                    <p class="error-message"></p>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="roles-empty" class="empty-state" style="display: none;">
+                                    <i class="bi bi-shield"></i>
+                                    <h5>No Roles Found</h5>
+                                    <p>No roles have been created yet.</p>
+                                </div>
+
+                                <!-- Content -->
+                                <div id="rolesContent" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Description</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="roleList"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Groups Tab -->
+                            <div class="tab-pane fade" id="groups" role="tabpanel">
+                                <div class="section-header">
+                                    <h4>Group Management</h4>
+                                    <button class="btn btn-primary" onclick="showCreateGroupModal()">
+                                        <i class="bi bi-plus-circle"></i> Add Group
+                                    </button>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="groups-loading" class="loading-spinner" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="groups-error" class="error-state" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <h5>Error Loading Groups</h5>
+                                    <p class="error-message"></p>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="groups-empty" class="empty-state" style="display: none;">
+                                    <i class="bi bi-collection"></i>
+                                    <h5>No Groups Found</h5>
+                                    <p>No groups have been created yet.</p>
+                                </div>
+
+                                <!-- Content -->
+                                <div id="groupsContent" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Path</th>
+                                                    <th>Subgroups</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="groupList"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Clients Tab -->
+                            <div class="tab-pane fade" id="clients" role="tabpanel">
+                                <div class="section-header">
+                                    <h4>Client Management</h4>
+                                    <button class="btn btn-primary" onclick="showCreateClientModal()">
+                                        <i class="bi bi-plus-circle"></i> Add Client
+                                    </button>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="clients-loading" class="loading-spinner" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="clients-error" class="error-state" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <h5>Error Loading Clients</h5>
+                                    <p class="error-message"></p>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="clients-empty" class="empty-state" style="display: none;">
+                                    <i class="bi bi-laptop"></i>
+                                    <h5>No Clients Found</h5>
+                                    <p>No clients have been configured yet.</p>
+                                </div>
+
+                                <!-- Content -->
+                                <div id="clientsContent" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Client ID</th>
+                                                    <th>Name</th>
+                                                    <th>Protocol</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="clientList"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sessions Tab -->
+                            <div class="tab-pane fade" id="sessions" role="tabpanel">
+                                <div class="section-header">
+                                    <h4>Active Sessions</h4>
+                                    <button class="btn btn-outline-light" onclick="SessionManager.load()">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="sessions-loading" class="loading-spinner" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="sessions-error" class="error-state" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <h5>Error Loading Sessions</h5>
+                                    <p class="error-message"></p>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="sessions-empty" class="empty-state" style="display: none;">
+                                    <i class="bi bi-clock-history"></i>
+                                    <h5>No Active Sessions</h5>
+                                    <p>No user sessions are currently active.</p>
+                                </div>
+
+                                <!-- Content -->
+                                <div id="sessionsContent" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Username</th>
+                                                    <th>IP Address</th>
+                                                    <th>Started</th>
+                                                    <th>Last Access</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="sessionsTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Security Tab -->
+                            <div class="tab-pane fade" id="security" role="tabpanel">
+                                <div class="section-header">
+                                    <h4>Security Events</h4>
+                                    <button class="btn btn-outline-light" onclick="SecurityManager.load()">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+
+                                <!-- Loading State -->
+                                <div id="security-loading" class="loading-spinner" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Error State -->
+                                <div id="security-error" class="error-state" style="display: none;">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <h5>Error Loading Security Data</h5>
+                                    <p class="error-message"></p>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="security-empty" class="empty-state" style="display: none;">
+                                    <i class="bi bi-shield-exclamation"></i>
+                                    <h5>No Security Events</h5>
+                                    <p>No security events have been recorded.</p>
+                                </div>
+
+                                <!-- Content -->
+                                <div id="securityContent" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Time</th>
+                                                    <th>Type</th>
+                                                    <th>Details</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="eventsTableBody"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
     <!-- Create User Modal -->
     <div class="modal fade" id="createUserModal" tabindex="-1">
         <div class="modal-dialog">
@@ -436,138 +526,44 @@
                     <h5 class="modal-title">Create New User</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="createUserForm">
+                <form id="createUserForm">
+                    <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Username</label>
+                            <label class="form-label">Username *</label>
                             <input type="text" class="form-control" name="username" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
+                            <label class="form-label">Email *</label>
                             <input type="email" class="form-control" name="email" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">First Name</label>
-                            <input type="text" class="form-control" name="firstName" required>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">First Name</label>
+                                    <input type="text" class="form-control" name="firstName">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" name="lastName">
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Last Name</label>
-                            <input type="text" class="form-control" name="lastName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
+                            <label class="form-label">Password *</label>
                             <input type="password" class="form-control" name="password" required>
                         </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" name="enabled" checked>
-                            <label class="form-check-label">Enabled</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createUser()">Create</button>
-                </div>
-            </div>
-
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enabled" id="userEnabled" checked>
+                            <label class="form-check-label" for="userEnabled">Enabled</label>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create User</button>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -580,122 +576,22 @@
                     <h5 class="modal-title">Create New Role</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="createRoleForm">
+                <form id="createRoleForm">
+                    <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Name</label>
+                            <label class="form-label">Role Name *</label>
                             <input type="text" class="form-control" name="name" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Description</label>
-                            <textarea class="form-control" name="description"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createRole()">Create</button>
-                </div>
-            </div>
-
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Role</button>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -708,122 +604,22 @@
                     <h5 class="modal-title">Create New Group</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="createGroupForm">
+                <form id="createGroupForm">
+                    <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Name</label>
+                            <label class="form-label">Group Name *</label>
                             <input type="text" class="form-control" name="name" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Path</label>
-                            <input type="text" class="form-control" name="path">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createGroup()">Create</button>
-                </div>
-            </div>
-
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
+                            <input type="text" class="form-control" name="path" placeholder="/groups/new-group">
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Group</button>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -836,620 +632,41 @@
                     <h5 class="modal-title">Create New Client</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="createClientForm">
+                <form id="createClientForm">
+                    <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Client ID</label>
+                            <label class="form-label">Client ID *</label>
                             <input type="text" class="form-control" name="clientId" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Name</label>
+                            <label class="form-label">Client Name *</label>
                             <input type="text" class="form-control" name="name" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" name="description"></textarea>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" name="enabled" checked>
-                            <label class="form-check-label">Enabled</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createClient()">Create</button>
-                </div>
-            </div>
-
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- <script src="/js/rbac.js"></script> -->
-    <script type="module" src="./js/admin.js"></script>
-
-    <!-- Sensors Tab -->
-    <div class="tab-pane fade" id="sensors" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mt-4">
-            <h2>Sensor Management</h2>
-        </div>
-
-        <!-- Loading State -->
-        <div class="loading-spinner" id="sensor-loading">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-
-        <!-- Error State -->
-        <div class="error-state" id="sensor-error" style="display: none;">
-            <i class="bi bi-exclamation-circle"></i>
-            <h4>Error Loading Sensor Data</h4>
-            <p class="error-message">Unable to load sensor data. Please try again later.</p>
-            <button class="btn btn-primary" onclick="fetchSensorData()">Retry</button>
-        </div>
-
-        <!-- Empty State -->
-        <div class="empty-state" id="sensor-empty" style="display: none;">
-            <i class="bi bi-robot"></i>
-            <h4>No Sensor Data Available</h4>
-            <p>There is no sensor data available at the moment.</p>
-            <p>Use the form below to submit new sensor data.</p>
-        </div>
-
-        <!-- Main Content -->
-        <div id="sensorContent" style="display: none;">
-            <!-- Sensor Data Form -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h3 class="card-title">Submit Sensor Data</h3>
-                </div>
-                <div class="card-body">
-                    <form id="sensorForm">
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Robot ID</label>
-                                <input type="text" class="form-control" id="robotId" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Position X</label>
-                                <input type="number" class="form-control" id="positionX" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">Position Y</label>
-                                <input type="number" class="form-control" id="positionY" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Task Status</label>
-                            <select class="form-select" id="taskStatus" required>
-                                <option value="IDLE">Idle</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="ERROR">Error</option>
-                                <option value="MAINTENANCE">Maintenance</option>
+                            <label class="form-label">Protocol</label>
+                            <select class="form-select" name="protocol">
+                                <option value="openid-connect">OpenID Connect</option>
+                                <option value="saml">SAML</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <span>Submit Sensor Data</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Sensor Data Display -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Current Sensor Data</h3>
-                </div>
-                <div class="card-body">
-                    <div id="sensorDataContainer"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Alert Area -->
-        <div id="alertArea" class="mt-3"></div>
-    </div>
-    </div>
-    </div>
-
-    <!-- Create Role Modal -->
-    <div class="modal fade" id="createRoleModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Role</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createRoleForm">
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" name="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" name="description"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createRole()">Create</button>
-                </div>
-            </div>
-
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="enabled" id="clientEnabled" checked>
+                            <label class="form-check-label" for="clientEnabled">Enabled</label>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Client</button>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Create Group Modal -->
-    <div class="modal fade" id="createGroupModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Group</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createGroupForm">
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" name="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Path</label>
-                            <input type="text" class="form-control" name="path">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createGroup()">Create</button>
-                </div>
-            </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Client Modal -->
-    <div class="modal fade" id="createClientModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Create New Client</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="createClientForm">
-                        <div class="mb-3">
-                            <label class="form-label">Client ID</label>
-                            <input type="text" class="form-control" name="clientId" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Name</label>
-                            <input type="text" class="form-control" name="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" name="description"></textarea>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" name="enabled" checked>
-                            <label class="form-check-label">Enabled</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="createClient()">Create</button>
-                </div>
-            </div>
-
-            <!-- Realms Tab -->
-            <div class="tab-pane fade" id="realms" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Realm Management</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>Realm Name</th>
-                                <th>Display Name</th>
-                                <th>Enabled</th>
-                            </tr>
-                        </thead>
-                        <tbody id="realmsTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="mt-4">
-                    <h3>Realm Configuration</h3>
-                    <div id="realmConfigContainer" class="card">
-                        <div class="card-body">
-                            <pre id="realmConfigContent"></pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sessions Tab -->
-            <div class="tab-pane fade" id="sessions" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>User Sessions</h2>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th>User ID</th>
-                                <th>IP Address</th>
-                                <th>Start Time</th>
-                                <th>Last Access</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Security Tab -->
-            <div class="tab-pane fade" id="security" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Security & Monitoring</h2>
-                </div>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Attack Detection</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="bruteForceContainer"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h3 class="card-title">Events</h3>
-                            </div>
-                            <div class="card-body">
-                                <div id="eventsContainer">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Details</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="eventsTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Server Info Tab -->
-            <div class="tab-pane fade" id="server-info" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h2>Server Information</h2>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <pre id="serverInfoContent"></pre>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- <script src="/js/rbac.js"></script> -->
-    <script type="module" src="./js/admin.js"></script>
+    <script src="./js/admin.js"></script>
 </body>
 
 </html>
