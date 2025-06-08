@@ -1,0 +1,14 @@
+{
+  "realm": "DemoRealm",
+  "auth-server-url": "http://localhost:8080/",
+  "ssl-required": "external",
+  "resource": "robot-control-app",
+  "verify-token-audience": false,
+  "credentials": {
+    "secret": "ERSJ3mqAvr4CbBUp9jzdTN1VUSPIwKKh"
+  },
+  "confidential-port": 0,
+  "policy-enforcer": {
+    "credentials": {}
+  }
+}
